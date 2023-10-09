@@ -38,7 +38,8 @@ This project only support riscv64(sv57) and test on QEMU.
 
     => target physical address = 0x10542b000
 
-(gdb) source gdb-pt-dump/pt.py
+# show 
+(gdb) source gdb-pt-dump/pt.py 
 (gdb) pt -satp 0xa00000000010532a -filter u
          Address :  Length   Permissions
          0x10000 :  0x1000 | W:0 X:1 R:1 S:0
@@ -63,4 +64,3 @@ This project only support riscv64(sv57) and test on QEMU.
   0x7fffab196000 :  0x2000 | W:0 X:0 R:1 S:0
   0x7fffab198000 :  0x2000 | W:1 X:0 R:1 S:0
   0x7fffeaaae000 :  0x2000 | W:1 X:0 R:1 S:0
->>>>>>> origin/master
