@@ -169,14 +169,16 @@ class LxTaskMMU(gdb.Command):
                 print("page physical address = 0x%lx" % phys_page_addr)
                 page_addr = phys_to_virt(phys_page_addr)
                 print("page virtual address = 0x%lx" % (page_addr))
-                a = int(phys_page_addr)|addroffset
+                pa = int(phys_page_addr)|addroffset
+                va = int(page_addr)|addroffset
                 val = vmemptr + (phys_page_addr >> PAGE_SHIFT)
                 print("page * address 0x%lx" % val)
                 bitmask = ctypes.c_ulong(val['flags']).value
                 tmp = [flag for (index, flag) in enumerate(PG_flags) if (bitmask & 2**index)]
                 tmp.reverse()
                 print('page flag = {name} {text}'.format(name=val, text=tmp))
-                print("\n=> target physical address = 0x%lx" % a)
+                print("\n=> target virtual address = 0x%lx" % va)
+                print("=> target physical address = 0x%lx" % pa)
             else:
                 print("Can't get page of PID " + str(pid))
         else:
