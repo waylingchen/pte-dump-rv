@@ -73,7 +73,6 @@ def get_task_by_pid(pid):
             print("{} {:^5} {}\n".format(task.format_string().split()[0],task["pid"].format_string(),task["comm"].string()))
             tmp = task['mm']
             if(tmp == 0):
-                print("debug")
                 return ctypes.c_ulong(init_taskg['active_mm']['pgd']).value
             else:
                 return ctypes.c_ulong(task['mm']['pgd']).value

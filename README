@@ -2,6 +2,11 @@
 This is gdb script help us dump PTE for riscv64.
 This project only support riscv64(sv57) and test on QEMU.
 
+# command :
+1.lxtask
+2.lx-virt_to_phys
+3.lx-pfn_to_kaddr
+
 # show 
     (gdb) lxtask 116 0x10000
           TASK          PID    COMM
