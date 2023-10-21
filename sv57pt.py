@@ -112,6 +112,8 @@ def set_offset(addr_t):
     bitmask = bits
     tmp = [flag for (index, flag) in enumerate(PTE_flags) if (bitmask & 2**index)]
     tmp.reverse()
+	if(bits == 0):
+		print('PTE flag : null'
     print('PTE flag : {name} {text}'.format(name=bin(bits), text=tmp))
     addr_t &= ~((1 << PTE_SHIFT) - 1)
     addr_t = addr_t >> PTE_SHIFT
@@ -145,6 +147,54 @@ def show_addr(phys_page_addr,offset,level):
 			print("=> target physical address = [0x%lx]" % pa)
 		else:
 			print("Can't get page struct")
+	else:
+			print("Can't get PTE")
+class LxVirt2Phys(gdb.Command):
+	"""virtual address to physical address"""
+
+	def __init__(self):
+		super(LxVirt2Phys, self).__init__("lx-virt_to_phys", gdb.COMMAND_USER)
+
+	def __lm_to_phys(self, addr):
+		return addr - VA_PA_OFFSET
+
+	def __virt_to_phys_nodebug(self, va):
+		return self.__lm_to_phys(va)
+
+	def __virt_to_phys(self, va):
+		return self.__virt_to_phys_nodebug(va)
+
+	def virt_to_phys(self, va):
+		return self.__virt_to_phys(va)
+
+	def invoke(self, arg, from_tty):
+		argv = gdb.string_to_argv(arg)
+		linear_addr = int(argv[0], 16)
+		phys_addr = self.virt_to_phys(linear_addr)
+		gdb.write("virt_to_phys(0x%x) = 0x%x\n" % (linear_addr, phys_addr))
+
+LxVirt2Phys()
+
+
+class LxPFN2Kaddr(gdb.Command):
+	"""PFN to kernel address"""
+
+	def __init__(self):
+		self.PAGE_SHIFT = PAGE_SHIFT
+		super(LxPFN2Kaddr, self).__init__("lx-pfn_to_kaddr", gdb.COMMAND_USER)
+	def __phys_to_virt(self, pa):
+		return (pa + VA_PA_OFFSET)
+	def __va(self, pa):
+		return self.__phys_to_virt(pa)
+	def pfn_to_kaddr(self, pfn):
+		return self.__va(pfn << self.PAGE_SHIFT)
+	def invoke(self, arg,from_tty):
+		argv = gdb.string_to_argv(arg)
+		pfn = int(argv[0])
+		kaddr = self.pfn_to_kaddr(pfn)
+		gdb.write("pfn_to_kaddr(%d) = 0x%x\n" % (pfn, kaddr))
+
+LxPFN2Kaddr()
 
 class LxTaskMMU(gdb.Command):
 	"""Prints the entire paging structure used to translate a given PID and virtual address.
@@ -212,4 +262,3 @@ class LxTaskMMU(gdb.Command):
 		else:
 			print("No task of PID " + str(pid))
 LxTaskMMU()
-
