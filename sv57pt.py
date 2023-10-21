@@ -81,28 +81,28 @@ def get_task_by_pid(pid):
 
 PTE_flags = ['V','R','W','X','U','G','A','D',...]
 PG_flags = [
-	'PG_locked',
-	'PG_writeback',
-	'PG_referenced',
-	'PG_uptodate',
-	'PG_dirty',
-	'PG_lru',
-	'PG_head',
-	'PG_waiters',
-	'PG_active',
-	'PG_workingset',
-	'PG_error',
-	'PG_slab',
-	'PG_owner_priv_1',
-	'PG_arch_1',
-	'PG_reserved',
-	'PG_private',
-	'PG_private_2',
-	'PG_mappedtodisk',
-	'PG_reclaim',
-	'PG_swapbacked',
-	'PG_unevictable',
-	'PG_mlocked'
+    'PG_locked',
+    'PG_writeback',
+    'PG_referenced',
+    'PG_uptodate',
+    'PG_dirty',
+    'PG_lru',
+    'PG_head',
+    'PG_waiters',
+    'PG_active',
+    'PG_workingset',
+    'PG_error',
+    'PG_slab',
+    'PG_owner_priv_1',
+    'PG_arch_1',
+    'PG_reserved',
+    'PG_private',
+    'PG_private_2',
+    'PG_mappedtodisk',
+    'PG_reclaim',
+    'PG_swapbacked',
+    'PG_unevictable',
+    'PG_mlocked'
     ]
 
 pgsize = {0 : "4KB", 1 : "2MB" , 2 : "1GB" }
@@ -112,153 +112,154 @@ def set_offset(addr_t):
     bitmask = bits
     tmp = [flag for (index, flag) in enumerate(PTE_flags) if (bitmask & 2**index)]
     tmp.reverse()
-	if(bits == 0):
-		print('PTE flag : null'
-    print('PTE flag : {name} {text}'.format(name=bin(bits), text=tmp))
+    if(bits == 0):
+        return 0
+    print('PTE flags : {name} {text}'.format(name=bin(bits), text=tmp))
     addr_t &= ~((1 << PTE_SHIFT) - 1)
     addr_t = addr_t >> PTE_SHIFT
     addr_t = addr_t << PAGE_SHIFT
     return addr_t
 
 def leaf(addr_t):
-	bits = addr_t & 0xf
-	if(bits != 1):
-		return True
-	else:
-		return False
+    bits = addr_t & 0xf
+    if(bits != 1):
+        return True
+    else:
+        return False
 
 def show_addr(phys_page_addr,offset,level):
-	if phys_page_addr!=0:
-		page_addr = phys_to_virt(phys_page_addr)
-		pa = int(phys_page_addr)|offset
-		va = int(page_addr)|offset
-		print("PFN : %d" % int(phys_page_addr >> PAGE_SHIFT))
-		print('page size = {sz:10}'.format(sz=pgsize[level]));
-		print('{sz} page frame virtual address  = [{addr}]'.format(sz=pgsize[level],addr=hex(page_addr)))
-		print('{sz} page frame physical address = [{addr}]'.format(sz=pgsize[level],addr=hex(phys_page_addr)))
-		if pa >= PHYS_ADDR:
-			val = vmemptr + (phys_page_addr >> PAGE_SHIFT)
-			bitmask = ctypes.c_ulong(val['flags']).value
-			tmp = [flag for (index, flag) in enumerate(PG_flags) if (bitmask & 2**index)]
-			tmp.reverse()
-			print("struct page * address : [0x%lx]" % val)
-			print('struct page flag : {name} {text}'.format(name=val, text=tmp))
-			print("=> target virtual address  = [0x%lx]" % va)
-			print("=> target physical address = [0x%lx]" % pa)
-		else:
-			print("Can't get page struct")
-	else:
-			print("Can't get PTE")
+    if phys_page_addr!=0:
+        page_addr = phys_to_virt(phys_page_addr)
+        pa = int(phys_page_addr)|offset
+        va = int(page_addr)|offset
+        print("PFN : %d" % int(phys_page_addr >> PAGE_SHIFT))
+        print('page size = {sz:10}'.format(sz=pgsize[level]));
+        print('{sz} page frame virtual address  = [{addr}]'.format(sz=pgsize[level],addr=hex(page_addr)))
+        print('{sz} page frame physical address = [{addr}]'.format(sz=pgsize[level],addr=hex(phys_page_addr)))
+        if pa >= PHYS_ADDR:
+            val = vmemptr + (phys_page_addr >> PAGE_SHIFT)
+            bitmask = ctypes.c_ulong(val['flags']).value
+            tmp = [flag for (index, flag) in enumerate(PG_flags) if (bitmask & 2**index)]
+            tmp.reverse()
+            print("struct page * address : [0x%lx]" % val)
+            print('struct page flags : {name} {text}'.format(name=val, text=tmp))
+            print("=> target virtual address  = [0x%lx]" % va)
+            print("=> target physical address = [0x%lx]" % pa)
+        else:
+            print("Can't get page struct!")
+    else:
+            print("PTE not exist!")
 class LxVirt2Phys(gdb.Command):
-	"""virtual address to physical address"""
+    """virtual address to physical address"""
 
-	def __init__(self):
-		super(LxVirt2Phys, self).__init__("lx-virt_to_phys", gdb.COMMAND_USER)
+    def __init__(self):
+        super(LxVirt2Phys, self).__init__("lx-virt_to_phys", gdb.COMMAND_USER)
 
-	def __lm_to_phys(self, addr):
-		return addr - VA_PA_OFFSET
+    def __lm_to_phys(self, addr):
+        return addr - VA_PA_OFFSET
 
-	def __virt_to_phys_nodebug(self, va):
-		return self.__lm_to_phys(va)
+    def __virt_to_phys_nodebug(self, va):
+        return self.__lm_to_phys(va)
 
-	def __virt_to_phys(self, va):
-		return self.__virt_to_phys_nodebug(va)
+    def __virt_to_phys(self, va):
+        return self.__virt_to_phys_nodebug(va)
 
-	def virt_to_phys(self, va):
-		return self.__virt_to_phys(va)
+    def virt_to_phys(self, va):
+        return self.__virt_to_phys(va)
 
-	def invoke(self, arg, from_tty):
-		argv = gdb.string_to_argv(arg)
-		linear_addr = int(argv[0], 16)
-		phys_addr = self.virt_to_phys(linear_addr)
-		gdb.write("virt_to_phys(0x%x) = 0x%x\n" % (linear_addr, phys_addr))
+    def invoke(self, arg, from_tty):
+        argv = gdb.string_to_argv(arg)
+        linear_addr = int(argv[0], 16)
+        phys_addr = self.virt_to_phys(linear_addr)
+        gdb.write("virt_to_phys(0x%x) = 0x%x\n" % (linear_addr, phys_addr))
 
 LxVirt2Phys()
 
 
 class LxPFN2Kaddr(gdb.Command):
-	"""PFN to kernel address"""
+    """PFN to kernel address"""
 
-	def __init__(self):
-		self.PAGE_SHIFT = PAGE_SHIFT
-		super(LxPFN2Kaddr, self).__init__("lx-pfn_to_kaddr", gdb.COMMAND_USER)
-	def __phys_to_virt(self, pa):
-		return (pa + VA_PA_OFFSET)
-	def __va(self, pa):
-		return self.__phys_to_virt(pa)
-	def pfn_to_kaddr(self, pfn):
-		return self.__va(pfn << self.PAGE_SHIFT)
-	def invoke(self, arg,from_tty):
-		argv = gdb.string_to_argv(arg)
-		pfn = int(argv[0])
-		kaddr = self.pfn_to_kaddr(pfn)
-		gdb.write("pfn_to_kaddr(%d) = 0x%x\n" % (pfn, kaddr))
+    def __init__(self):
+        self.PAGE_SHIFT = PAGE_SHIFT
+        super(LxPFN2Kaddr, self).__init__("lx-pfn_to_kaddr", gdb.COMMAND_USER)
+    def __phys_to_virt(self, pa):
+        return (pa + VA_PA_OFFSET)
+    def __va(self, pa):
+        return self.__phys_to_virt(pa)
+    def pfn_to_kaddr(self, pfn):
+        return self.__va(pfn << self.PAGE_SHIFT)
+    def invoke(self, arg,from_tty):
+        argv = gdb.string_to_argv(arg)
+        pfn = int(argv[0])
+        kaddr = self.pfn_to_kaddr(pfn)
+        gdb.write("pfn_to_kaddr(%d) = 0x%x\n" % (pfn, kaddr))
 
 LxPFN2Kaddr()
 
 class LxTaskMMU(gdb.Command):
-	"""Prints the entire paging structure used to translate a given PID and virtual address.
-	lxtask $pid $va"""
+    """Prints the entire paging structure used to translate a given PID and virtual address.
+    lxtask $pid $va"""
 
-	def __init__(self):
-		super(LxTaskMMU, self).__init__("lxtask", gdb.COMMAND_DATA)
-	def invoke(self, myarg,from_tty):
-		args = gdb.string_to_argv(myarg)
-		pid = int(args[0], 10)
-		addr = int(args[1], 16) & 0xffffffffffffffff
-		addroffset = addr & ((1 << PAGE_SHIFT) - 1)
-		addroffsetpmd = addr & ((1 << PMD_SHIFT) - 1)
-		addroffsetpud = addr & ((1 << PUD_SHIFT) - 1)
-		pgd = get_task_by_pid(pid)
-		if pgd:
-			ptmp = pgd
-			ptmp = virt_to_phys(ptmp) >> PAGE_SHIFT
-			satp = 0xa << 60 | ptmp
-			print("satp = 0x%lx\n" % satp)
-			#print("=> target virtual address = 0x%lx\n" % addr)
-			print("PGD virtual address = 0x%lx" % pgd)
-			pgd_offset = get_pgd_offset(addr)
-			print("PGD offset = 0x%lx" % pgd_offset)
-			phys_p4d_addr = read_qword(pgd + pgd_offset)
-			phys_p4d_addr = set_offset(phys_p4d_addr)
-			print("P4D physical address = 0x%lx" % phys_p4d_addr)
-			p4d_addr = phys_to_virt(phys_p4d_addr)
-			p4d_offset = get_p4d_offset(addr)
-			print("P4D offset = 0x%lx" % p4d_offset)
-			print("P4D virtual address = 0x%lx" % (p4d_addr + p4d_offset))
-			phys_pud_addr = read_qword(p4d_addr + p4d_offset)
-			phys_pud_addr = set_offset(phys_pud_addr)
-			print("PUD physical address = 0x%lx" % phys_pud_addr)
-			pud_addr = phys_to_virt(phys_pud_addr)
-			pud_offset = get_pud_offset(addr)
-			print("PUD offset = 0x%lx" % pud_offset)
-			print("PUD virtual address = 0x%lx" % (pud_addr + pud_offset))
-			phys_pmd_addr = read_qword(pud_addr + pud_offset)
-			if(leaf(phys_pmd_addr)):
-				phys_pmd_addr = set_offset(phys_pmd_addr)
-				show_addr(phys_pmd_addr,addroffsetpud,2)
-				return
-			phys_pmd_addr = set_offset(phys_pmd_addr)
-			print("PMD physical address = 0x%lx" % phys_pmd_addr)
-			pmd_addr = phys_to_virt(phys_pmd_addr)
-			pmd_offset = get_pmd_offset(addr)
-			print("PMD offset = 0x%lx" % pmd_offset)
-			print("PMD virtual address = 0x%lx" % (pmd_addr + pmd_offset))
-			phys_pte_addr = read_qword(pmd_addr + pmd_offset)
-			if(leaf(phys_pte_addr)):
-				phys_pte_addr = set_offset(phys_pte_addr)
-				show_addr(phys_pte_addr,addroffsetpmd,1)
-				return
-			phys_pte_addr = set_offset(phys_pte_addr)
-			print("PTE physical address = 0x%lx" % phys_pte_addr)
-			pte_addr = phys_to_virt(phys_pte_addr)
-			pte_offset = get_pte_offset(addr)
-			print("PTE offset = 0x%lx" % pte_offset)
-			print("PTE virtual address = 0x%lx" % (pte_addr + pte_offset))
-			phys_page_addr = read_qword(pte_addr + pte_offset)
-			phys_page_addr = set_offset(phys_page_addr)
-			show_addr(phys_page_addr,addroffset,0)
-			return
-		else:
-			print("No task of PID " + str(pid))
+    def __init__(self):
+        super(LxTaskMMU, self).__init__("lxtask", gdb.COMMAND_DATA)
+    def invoke(self, myarg,from_tty):
+        args = gdb.string_to_argv(myarg)
+        pid = int(args[0], 10)
+        addr = int(args[1], 16) & 0xffffffffffffffff
+        addroffset = addr & ((1 << PAGE_SHIFT) - 1)
+        addroffsetpmd = addr & ((1 << PMD_SHIFT) - 1)
+        addroffsetpud = addr & ((1 << PUD_SHIFT) - 1)
+        pgd = get_task_by_pid(pid)
+        if pgd:
+            ptmp = pgd
+            ptmp = virt_to_phys(ptmp) >> PAGE_SHIFT
+            satp = 0xa << 60 | ptmp
+            print("satp = 0x%lx\n" % satp)
+            #print("=> target virtual address = 0x%lx\n" % addr)
+            print("PGD virtual address = 0x%lx" % pgd)
+            pgd_offset = get_pgd_offset(addr)
+            print("PGD offset = 0x%lx" % pgd_offset)
+            phys_p4d_addr = read_qword(pgd + pgd_offset)
+            phys_p4d_addr = set_offset(phys_p4d_addr)
+            print("P4D physical address = 0x%lx" % phys_p4d_addr)
+            p4d_addr = phys_to_virt(phys_p4d_addr)
+            p4d_offset = get_p4d_offset(addr)
+            print("P4D offset = 0x%lx" % p4d_offset)
+            print("P4D virtual address = 0x%lx" % (p4d_addr + p4d_offset))
+            phys_pud_addr = read_qword(p4d_addr + p4d_offset)
+            phys_pud_addr = set_offset(phys_pud_addr)
+            print("PUD physical address = 0x%lx" % phys_pud_addr)
+            pud_addr = phys_to_virt(phys_pud_addr)
+            pud_offset = get_pud_offset(addr)
+            print("PUD offset = 0x%lx" % pud_offset)
+            print("PUD virtual address = 0x%lx" % (pud_addr + pud_offset))
+            phys_pmd_addr = read_qword(pud_addr + pud_offset)
+            if(leaf(phys_pmd_addr)):
+                phys_pmd_addr = set_offset(phys_pmd_addr)
+                show_addr(phys_pmd_addr,addroffsetpud,2)
+                return
+            phys_pmd_addr = set_offset(phys_pmd_addr)
+            print("PMD physical address = 0x%lx" % phys_pmd_addr)
+            pmd_addr = phys_to_virt(phys_pmd_addr)
+            pmd_offset = get_pmd_offset(addr)
+            print("PMD offset = 0x%lx" % pmd_offset)
+            print("PMD virtual address = 0x%lx" % (pmd_addr + pmd_offset))
+            phys_pte_addr = read_qword(pmd_addr + pmd_offset)
+            if(leaf(phys_pte_addr)):
+                phys_pte_addr = set_offset(phys_pte_addr)
+                show_addr(phys_pte_addr,addroffsetpmd,1)
+                return
+            phys_pte_addr = set_offset(phys_pte_addr)
+            print("PTE physical address = 0x%lx" % phys_pte_addr)
+            pte_addr = phys_to_virt(phys_pte_addr)
+            pte_offset = get_pte_offset(addr)
+            print("PTE offset = 0x%lx" % pte_offset)
+            print("PTE virtual address = 0x%lx" % (pte_addr + pte_offset))
+            phys_page_addr = read_qword(pte_addr + pte_offset)
+            phys_page_addr = set_offset(phys_page_addr)
+            show_addr(phys_page_addr,addroffset,0)
+            return
+        else:
+            print("No task of PID " + str(pid))
 LxTaskMMU()
+
