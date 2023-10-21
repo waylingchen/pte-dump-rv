@@ -36,8 +36,7 @@ def container_of(ptr, _type, member):
     return top.cast(_type)
 def task_lists():
     task_ptr_type = gdb.lookup_type("struct task_struct").pointer()
-    init_taskm = gdb.parse_and_eval("init_task").address
-    t = g = init_taskm
+    t = g = init_taskg
     while True:
         while True:
             yield t
@@ -45,7 +44,7 @@ def task_lists():
             if t == g:
                 break
         t = g = container_of(g['tasks']['next'],task_ptr_type, "tasks")
-        if t == init_taskm:
+        if t == init_taskg:
             return
 def read_qword(addr):
     m = gdb.selected_inferior().read_memory(addr, 8);
@@ -148,6 +147,9 @@ def show_addr(phys_page_addr,offset,level):
 			print("Can't get page struct")
 
 class LxTaskMMU(gdb.Command):
+	"""Prints the entire paging structure used to translate a given PID and virtual address.
+	lxtask $pid $va"""
+
 	def __init__(self):
 		super(LxTaskMMU, self).__init__("lxtask", gdb.COMMAND_DATA)
 	def invoke(self, myarg,from_tty):
@@ -208,6 +210,6 @@ class LxTaskMMU(gdb.Command):
 			show_addr(phys_page_addr,addroffset,0)
 			return
 		else:
-			raise print("No task of PID " + str(pid))
+			print("No task of PID " + str(pid))
 LxTaskMMU()
 
