@@ -2,6 +2,9 @@
 This is gdb script help us dump PTE for riscv64.
 This project only support riscv64(sv57) and test on QEMU.
 
+# documents 
+We present how to using gdb script debugging target system(FPGA).
+
 # command :
 1.lxtask
 2.lx-virt_to_phys
